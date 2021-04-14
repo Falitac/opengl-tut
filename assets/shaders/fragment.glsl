@@ -1,8 +1,8 @@
 #version 450 compatibility
 
-out vec3 color;
+out vec4 color;
 in vec3 fragmentColor;
 
 void main() {
-  color = fragmentColor;
+  color = vec4(fragmentColor, 1.0);
 }

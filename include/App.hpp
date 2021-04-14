@@ -34,6 +34,12 @@ private:
     sf::ContextSettings contextSettings;
     std::map<int, bool> keyMap;
     
+    GLuint vao;
+    std::vector<float> vertices;
+    std::vector<uint32_t> indices;
+    GLuint vbo;
+    GLuint ebo;
+
 
     GLuint shaderID;
     
