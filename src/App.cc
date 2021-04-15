@@ -82,7 +82,7 @@ void App::run() {
     std::cout << "GLEW init failure" << std::endl;
   }
 
-  generateSphere(vertices, indices, 6.0f, 100);
+  generateSphere(vertices, indices, 6.0f, 35);
 
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
