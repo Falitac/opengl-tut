@@ -156,7 +156,7 @@ void App::logic(const float& deltaTime) {
     strafeSpeed += maxSpeed;
   }
   if(keyMap[sf::Keyboard::X]) {
-    glDeleteShader(shaderID);
+    glDeleteProgram(shaderID);
     shaderID = LoadShaders("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
   }
 
