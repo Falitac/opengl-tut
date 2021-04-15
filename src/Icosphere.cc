@@ -15,8 +15,8 @@ void generateIcosphere(
   std::vector<float>().swap(vertices);
   vertices.reserve(12);
   auto dphi = glm::two_pi<float>() / 5.0f;
-  auto halfRadius = radius / 2.0f;
-  auto middleRadius = std::sqrt(radius*radius - halfRadius*halfRadius);
+  auto latiduteHeight = radius * std::atan2(1.0f, 2.0f);
+  auto middleRadius = std::sqrt(radius*radius - latiduteHeight*latiduteHeight);
 
   vertices.emplace_back(0.0f);
   vertices.emplace_back(radius);
@@ -28,11 +28,11 @@ void generateIcosphere(
     auto phiPlus18 = phi + glm::two_pi<float>() / 10.0f;
   
     vertices.emplace_back(middleRadius * std::cos(phi));
-    vertices.emplace_back(halfRadius);
+    vertices.emplace_back(latiduteHeight);
     vertices.emplace_back(middleRadius * std::sin(phi));
     
     vertices.emplace_back(middleRadius * std::cos(phiPlus18));
-    vertices.emplace_back(-halfRadius);
+    vertices.emplace_back(-latiduteHeight);
     vertices.emplace_back(middleRadius * std::sin(phiPlus18));
   }
 

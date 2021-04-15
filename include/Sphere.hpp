@@ -12,4 +12,4 @@ void generateSphere(
   int divisions = 50
 );
 
-} // namespace generators
+} // namespace project
