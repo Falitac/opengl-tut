@@ -17,7 +17,7 @@ void main() {
   fragmentColor = vec3(1.0);
 
   if(position.y > 0.4) {
-    fragmentColor = vec3(1.0, 0.0, 0.0);
+    fragmentColor = vec3(1.0, 1.0, 0.0);
   }
   if(position.y >= -0.4 && position.y <= 0.4) {
     fragmentColor = vec3(0.0, 0.0, 0.0);
