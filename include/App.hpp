@@ -10,6 +10,7 @@
 #include <SFML/Graphics.hpp>
 #include <random>
 #include <memory>
+#include <limits>
 #include <iostream>
 
 

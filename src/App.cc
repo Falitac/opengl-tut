@@ -7,6 +7,65 @@ App::App()
 {
 }
 
+static void generateSphere(
+  std::vector<float>& vertices,
+  std::vector<uint32_t>& indices,
+  float radius = 6.0f,
+  int divisions = 50
+) {
+  float dr = radius / static_cast<float>(divisions);
+  const auto dphi = glm::two_pi<float>() / static_cast<float>(divisions);
+
+  vertices.emplace_back(0.0f);
+  vertices.emplace_back(-radius);
+  vertices.emplace_back(0.0f);
+
+  for(float height = -radius  + dr; height <= radius  - dr; height += dr) {
+    for(int i = 0; i < divisions; i++) {
+      auto phi = i * dphi;
+      auto actualRadius = std::sqrt(radius*radius - height*height);
+      vertices.emplace_back(actualRadius * std::cos(phi));
+      vertices.emplace_back(height);
+      vertices.emplace_back(actualRadius * std::sin(phi));
+    }
+  }
+
+  vertices.emplace_back(0.0f);
+  vertices.emplace_back(radius);
+  vertices.emplace_back(0.0f);
+
+  // indices 
+
+  // bottom vertex
+  for(int i = 0; i < divisions; i++) {
+    indices.emplace_back(0);
+    indices.emplace_back((i + 1) % (divisions + 1));
+    indices.emplace_back((i + 1) % divisions + 1);
+  }
+
+  // rest
+  for(int j = 0; j < 2 * (divisions - 1); j++) {
+    for(int i = 0; i < divisions; i++) {
+      indices.emplace_back(i + 1 + j * divisions);
+      indices.emplace_back((i + 1) % divisions + 1 + j * divisions);
+      indices.emplace_back((i + 1) % divisions + 1 + (j + 1) * divisions);
+
+      indices.emplace_back(i + 1 + j * divisions);
+      indices.emplace_back((i + 1) % divisions + 1 + (j + 1) * divisions);
+      indices.emplace_back(i + 1 + (j + 1) * divisions);
+    }
+  }
+
+  // upper vertex
+  for(int i = 0; i < divisions; i++) {
+    auto N = vertices.size() / 3 - 1;
+    indices.emplace_back(N);
+    indices.emplace_back(N - 1 - (i + 1) % divisions);
+    indices.emplace_back(N - 1 - i);
+  }
+
+}
+
 
 void App::run() {
   window.create(
@@ -23,46 +82,7 @@ void App::run() {
     std::cout << "GLEW init failure" << std::endl;
   }
 
-  float radius = 6.0f;
-  //for(float height = -radius / 2; height <= radius / 2; height++) {
-  for(float phi = 0.0f, dphi = glm::two_pi<float>() / 50.0f; phi <= glm::two_pi<float>(); phi += dphi) {
-    vertices.emplace_back(radius * std::cos(phi));
-    vertices.emplace_back(0.0f);
-    vertices.emplace_back(radius * std::sin(phi));
-
-    vertices.emplace_back(radius * std::cos(phi + dphi / 2.f));
-    vertices.emplace_back(2.0f);
-    vertices.emplace_back(radius * std::sin(phi + dphi / 2.f));
-  }
-  for(std::size_t i = 0; i < vertices.size() / 6 - 1; i++) {
-    uint32_t currIndex = i * 2;
-    indices.emplace_back(currIndex);
-    indices.emplace_back(currIndex + 1);
-    indices.emplace_back(currIndex + 2);
-
-    indices.emplace_back(currIndex + 1);
-    indices.emplace_back(currIndex + 3);
-    indices.emplace_back(currIndex + 2);
-  }
-  indices.emplace_back(vertices.size() / 3 - 2);
-  indices.emplace_back(vertices.size() / 3 - 1);
-  indices.emplace_back(0);
-
-  indices.emplace_back(vertices.size() / 3 - 1);
-  indices.emplace_back(1);
-  indices.emplace_back(0);
-
-  for(std::size_t i = 0; i < vertices.size() / 3; i++) {
-    std::cout << vertices[i*3 + 0] << " ";
-    std::cout << vertices[i*3 + 1] << " ";
-    std::cout << vertices[i*3 + 2] << "\n";
-  }
-
-  for(std::size_t i = 0; i < indices.size() / 3; i++) {
-    std::cout << indices[i*3 + 0] << " ";
-    std::cout << indices[i*3 + 1] << " ";
-    std::cout << indices[i*3 + 2] << "\n";
-  }
+  generateSphere(vertices, indices, 6.0f, 100);
 
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
@@ -165,6 +185,7 @@ void App::draw() {
     );
   projectionView = projectionMatrix * viewMatrix;
 
+
   glUseProgram(shaderID);
   GLint viewID = glGetUniformLocation(shaderID, "view");
   GLint projectionID = glGetUniformLocation(shaderID, "projection");
@@ -174,6 +195,24 @@ void App::draw() {
   glBindVertexArray(vao);
   //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+  constexpr auto pseudoNegInf = -1000000.f;
+  constexpr auto pseudoPosInf = +1000000.f;
+  glBegin(GL_LINES);
+    glColor3f(1.f, 0.f, 0.f);
+    glVertex3f(pseudoPosInf , 0.f, 0.f);
+    glVertex3f(pseudoNegInf ,  0.f, 0.f);
+  glEnd();
+  glBegin(GL_LINES);
+    glColor3f(0.f, 1.f, 0.f);
+    glVertex3f(0.f, pseudoNegInf, 0.f);
+    glVertex3f(0.f,  pseudoPosInf, 0.f);
+  glEnd();
+  glBegin(GL_LINES);
+    glColor3f(0.f, 0.f, 1.f);
+    glVertex3f(0.f, 0.f, pseudoNegInf);
+    glVertex3f(0.f, 0.f,  pseudoPosInf);
+  glEnd();
 
 
   glBindVertexArray(0);
