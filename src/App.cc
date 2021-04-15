@@ -25,7 +25,7 @@ void App::run() {
     std::cout << "GLEW init failure" << std::endl;
   }
 
-  generators::generateSphere(vertices, indices, 6.0f, 50);
+  generators::generateIcosphere(vertices, indices, 6.0f, 1);
 
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
