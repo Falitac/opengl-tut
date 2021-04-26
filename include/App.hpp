@@ -41,6 +41,8 @@ private:
     GLuint vbo;
     GLuint ebo;
 
+    uint32_t triangleNum;
+
 
     GLuint shaderID;
     

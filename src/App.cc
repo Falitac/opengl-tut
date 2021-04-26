@@ -7,6 +7,7 @@ App::App()
   : contextSettings(24, 8, 4, 4, 6)
   , titlePrefix("OpenGL ")
   , camera(glm::vec3(0.f, 0.f, -8.f))
+  , triangleNum(1)
 {
 }
 
@@ -25,7 +26,7 @@ void App::run() {
     std::cout << "GLEW init failure" << std::endl;
   }
 
-  generators::generateIcosphere(vertices, indices, 6.0f, 1);
+  generators::generateIcosphere(vertices, indices, 1.0, 0);
 
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
@@ -66,6 +67,12 @@ void App::handleEvents() {
         if(event.key.control && keyMap[sf::Keyboard::W]) {
           window.close();
         }
+        if(keyMap[sf::Keyboard::O]) {
+          triangleNum += 1;
+        }
+        if(keyMap[sf::Keyboard::P]) {
+          triangleNum -= 1;
+        }
       break;
       case sf::Event::KeyReleased:
         keyMap[event.key.code] = false;
@@ -86,6 +93,9 @@ void App::logic(const float& deltaTime) {
   auto rotateVert = 0.0f;
   
   auto maxSpeed = 25.0f;
+  if(keyMap[sf::Keyboard::LShift]) {
+    maxSpeed /= 3.0f;
+  }
   if(keyMap[sf::Keyboard::W]) {
     camSpeed += maxSpeed;
   }
@@ -98,6 +108,14 @@ void App::logic(const float& deltaTime) {
   if(keyMap[sf::Keyboard::D]) {
     strafeSpeed += maxSpeed;
   }
+  if(keyMap[sf::Keyboard::Q]) {
+    camera.pos().y -= maxSpeed * deltaTime;
+  }
+  if(keyMap[sf::Keyboard::E]) {
+    camera.pos().y += maxSpeed * deltaTime;
+  }
+
+
   if(keyMap[sf::Keyboard::X]) {
     glDeleteProgram(shaderID);
     shaderID = LoadShaders("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
@@ -137,7 +155,7 @@ void App::draw() {
   
   glBindVertexArray(vao);
   //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, 3*triangleNum, GL_UNSIGNED_INT, 0);
 
   constexpr auto pseudoNegInf = -1000000.f;
   constexpr auto pseudoPosInf = +1000000.f;

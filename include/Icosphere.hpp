@@ -8,7 +8,7 @@ namespace generators {
 void generateIcosphere(
   std::vector<float>& vertices,
   std::vector<uint32_t>& indices,
-  float radius = 5.f,
+  float radius = 1.f,
   int divisions = 1
 );
 
