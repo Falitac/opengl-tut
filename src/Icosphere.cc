@@ -47,13 +47,13 @@ void generateIcosphere(
   for(int i = 0; i < 5; i++) {
     // top
     indices.emplace_back(0);
-    indices.emplace_back(i * 2 + 1);
     indices.emplace_back((i + 1) % 5 * 2 + 1);
+    indices.emplace_back(i * 2 + 1);
 
     // upper mid
     indices.emplace_back(i * 2 + 1);
-    indices.emplace_back(i * 2 + 2);
     indices.emplace_back((i + 1) % 5 * 2 + 1);
+    indices.emplace_back(i * 2 + 2);
 
     // lower mid
     indices.emplace_back(i * 2 + 2);
@@ -65,42 +65,55 @@ void generateIcosphere(
     indices.emplace_back(i * 2 + 2);
     indices.emplace_back((i + 1) % 5 * 2 + 2);
   }
-
-  for(int i = 0; i < indices.size(); i+=3) {
-    printf("T %d:\n", i / 3);
-    for(int j = 0; j < 3; j++) {
-      printf("%f %f %f\n",
-        vertices[indices[i+j]*3 + 0],
-        vertices[indices[i+j]*3 + 1],
-        vertices[indices[i+j]*3 + 2]
-      );
-    }
-  }
+  auto corectVertex = [&radius] (std::array<float, 3>& point) {
+    std::array<float, 3> p;
+    auto R = point[0]*point[0] + point[1]*point[1] + point[2]*point[2];
+    R = std::sqrt(R);
+    p[0] = point[0] / R * radius;
+    p[1] = point[1] / R * radius;
+    p[2] = point[2] / R * radius;
+    point = p;
+  };
 
   for(int i = 1; i <= divisions; i++) {
     std::vector<float> newVertices;
     std::vector<uint32_t> newIndices;
     newVertices.reserve(vertices.size() * 2);
     newIndices.reserve(indices.size() * 2);
+    
+    uint32_t indicesIt = 0;
 
-    for(int j = 0; j < indices.size(); j += 3) { // for each triangle
+    for(int j = 0; j < indices.size(); j+=3, indicesIt += 6) { // for each triangle
       std::array<float, 3> newVertex;
       for(int k = 0; k < 3; k++) { //for each vertex of triangle
-        newVertices.emplace_back(vertices[indices[j + k]*3 + 0]);
-        newVertices.emplace_back(vertices[indices[j + k]*3 + 1]);
-        newVertices.emplace_back(vertices[indices[j + k]*3 + 2]);
+        uint32_t index1 = indices[j + k]*3;
+        uint32_t index2 = indices[(j + k + 1) % 3]*3;
+        newVertices.emplace_back(vertices[index1 + 0]);
+        newVertices.emplace_back(vertices[index1 + 1]);
+        newVertices.emplace_back(vertices[index1 + 2]);
 
-        newVertex[0] = (vertices[indices[j + k]*3 + 0] + vertices[indices[(j + k + 1) % 3]*3 + 0]) / 2.0f;
-        newVertex[1] = (vertices[indices[j + k]*3 + 1] + vertices[indices[(j + k + 1) % 3]*3 + 1]) / 2.0f;
-        newVertex[2] = (vertices[indices[j + k]*3 + 2] + vertices[indices[(j + k + 1) % 3]*3 + 2]) / 2.0f;
+        newVertex[0] = (vertices[index1 + 0] + vertices[index2 + 0]) / 2.0f;
+        newVertex[1] = (vertices[index1 + 1] + vertices[index2 + 1]) / 2.0f;
+        newVertex[2] = (vertices[index1 + 2] + vertices[index2 + 2]) / 2.0f;
+        corectVertex(newVertex);
         newVertices.insert(newVertices.end(), newVertex.begin(), newVertex.end());
 
-        std::printf("%.5f %.5f %.5f\n", newVertex[0], newVertex[1], newVertex[0]);
       }
-      newIndices.emplace_back(j + 0);
-      newIndices.emplace_back(j + 1);
-      newIndices.emplace_back(j + 2);
+      newIndices.emplace_back(indicesIt + 0);
+      newIndices.emplace_back(indicesIt + 1);
+      newIndices.emplace_back(indicesIt + 5);
 
+      newIndices.emplace_back(indicesIt + 2);
+      newIndices.emplace_back(indicesIt + 3);
+      newIndices.emplace_back(indicesIt + 1);
+
+      newIndices.emplace_back(indicesIt + 4);
+      newIndices.emplace_back(indicesIt + 5);
+      newIndices.emplace_back(indicesIt + 3);
+
+      newIndices.emplace_back(indicesIt + 5);
+      newIndices.emplace_back(indicesIt + 1);
+      newIndices.emplace_back(indicesIt + 3);
     }
     vertices = std::move(newVertices);
     indices = std::move(newIndices);

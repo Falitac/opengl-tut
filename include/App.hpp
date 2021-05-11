@@ -38,13 +38,18 @@ private:
     GLuint vao;
     std::vector<float> vertices;
     std::vector<uint32_t> indices;
+    std::vector<float> normals;
     GLuint vbo;
+    GLuint nbo;
     GLuint ebo;
 
     uint32_t triangleNum;
 
 
     GLuint shaderID;
+    sf::Shader shader;
+    sf::Shader worldCoordShader;
+
     
     // MVP matrix
     glm::mat4 projectionMatrix;

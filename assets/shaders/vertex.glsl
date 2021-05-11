@@ -47,4 +47,5 @@ void main() {
   if(dot(abc, abc) <= radius * radius) {
     fragmentColor = vec3(1.0, 1.0, 1.0);
   }
+  fragmentColor.x = 0.5f;
 }
