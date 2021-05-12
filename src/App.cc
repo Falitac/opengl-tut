@@ -25,19 +25,25 @@ void App::run() {
     std::cerr << "GLEW init failure" << std::endl;
     throw std::runtime_error("glew not supported");
   }
-
-  mesh = std::make_unique<Mesh>("assets/objects/cylinder32.obj");
-
+  if(!sf::Shader::isAvailable()) {
+    std::printf("Shaders are not supported on this device\n");
+    throw std::runtime_error("shaders not supported");
+  }
   glEnable(GL_DEPTH_BUFFER);
   glEnable(GL_DEPTH_TEST);
-  //glEnable(GL_CULL_FACE);
   glFrontFace(GL_CCW);
+
+
+
+  std::cout << "Error: " << glGetError() << "\n";
+  mesh = std::make_unique<Mesh>("assets/objects/cylinder32.obj");
+  std::cout << "Error: " << glGetError() << "\n";
+
+  //glEnable(GL_CULL_FACE);
 
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-  if(!sf::Shader::isAvailable()) {
-    std::printf("Shaders are not supported on this device\n");
-  }
+  shader.loadFromFile("assets/shaders/basic-v.glsl", "assets/shaders/basic-f.glsl");
   worldCoordShader.loadFromFile("assets/shaders/coordv.glsl", "assets/shaders/coordf.glsl");
 
   mainLoop();
@@ -53,6 +59,10 @@ void App::handleEvents() {
         keyMap[event.key.code] = true;
         if(event.key.control && keyMap[sf::Keyboard::W]) {
           window.close();
+        }
+        if(keyMap[sf::Keyboard::X]) {
+          std::puts("reloading shader");
+          shader.loadFromFile("assets/shaders/basic-v.glsl", "assets/shaders/basic-f.glsl");
         }
       }
       break;
@@ -80,6 +90,12 @@ void App::draw() {
       camera.up()
     );
   projectionView = projectionMatrix * viewMatrix;
+
+
+  sf::Shader::bind(&shader);
+  shader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));
+  shader.setUniform("projection", sf::Glsl::Mat4(&projectionMatrix[0][0]));
+  mesh->draw(shader);
 
   sf::Shader::bind(&worldCoordShader);
   worldCoordShader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));

@@ -24,7 +24,7 @@ public:
 
   void loadFromFile(const std::string& fileLocation);
   void update();
-  void draw();
+  void draw(sf::Shader& shader);
 
 private:
   sf::Shader shader;

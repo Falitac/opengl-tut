@@ -23,7 +23,7 @@ void Mesh::loadFromFile(const std::string& fileLocation) {
       glBindVertexArray(vao);
 
       glBindBuffer(GL_ARRAY_BUFFER, vbo);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), vertices.data(), GL_STATIC_DRAW);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
       glEnableVertexAttribArray(0);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
@@ -35,34 +35,36 @@ void Mesh::loadFromFile(const std::string& fileLocation) {
       glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal)));
 
       glBindVertexArray(0);
+      std::puts("done!");
+      // Printing
+      // for(auto& vertex : vertices) {
+      //   std::printf("pos : %f %f %f\n", vertex.position.x, vertex.position.y, vertex.position.z);
+      //   std::printf("uv  : %f %f\n", vertex.uv.x, vertex.uv.y);
+      //   std::printf("norm: %f %f %f\n", vertex.normal.x, vertex.normal.y, vertex.normal.z);
+      // }
     }
   }
-  shader.loadFromFile("assets/shaders/basic-v.glsl", "assets/shaders/basic-v.glsl");
 }
 
 void Mesh::update() {
 
 }
 
-void Mesh::draw() {
-  sf::Shader::bind(&shader);
+void Mesh::draw(sf::Shader& shader) {
   glBindVertexArray(vao);
+  sf::Shader::bind(&shader);
   glDrawArrays(GL_TRIANGLES, 0, vertices.size());
   glBindVertexArray(0);
 }
 
 void Mesh::genBuffers() {
-  glGenBuffers(1, &vao);
+  glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
-  glGenBuffers(1, &uvo);
-  glGenBuffers(1, &nvo);
 }
 
 void Mesh::deleteBuffers() {
-  glDeleteBuffers(1, &vao);
   glDeleteBuffers(1, &vbo);
-  glDeleteBuffers(1, &uvo);
-  glDeleteBuffers(1, &nvo);
+  glDeleteVertexArrays(1, &vao);
 }
 
 void Mesh::loadOBJ(std::ifstream& file) {
@@ -123,14 +125,11 @@ void Mesh::loadOBJ(std::ifstream& file) {
   }
   std::printf("reading done!\n");
 
-  for(auto& index : indices) {
-    std::printf("%llu %llu %llu\n", index[0], index[1], index[2]);
-  }
   for(auto it = indices.begin(); it != indices.end(); it++) {
     Vertex vertex;
     vertex.position = vertices[it->at(0)];
     vertex.uv = uvs[it->at(1)];
-    vertex.position = normals[it->at(2)];
+    vertex.normal = normals[it->at(2)];
     this->vertices.push_back(vertex);
   }
 }

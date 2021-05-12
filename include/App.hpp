@@ -48,6 +48,7 @@ private:
     std::unique_ptr<Mesh> mesh;
 
     sf::Shader worldCoordShader;
+    sf::Shader shader;
 
     // MVP matrix
     glm::mat4 projectionMatrix;
