@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Camera.hpp"
+#include "Mesh.hpp"
 #include "LoadShader.hpp"
 #include "Random.hpp"
 
@@ -21,36 +22,33 @@ public:
     ~App() = default;
 
     void run();
+
+    template<typename T = float>
+    inline T getAspectRatio() {
+        return static_cast<T>(window.getSize().x) / window.getSize().y;
+    }
+    const sf::RenderWindow& getWindow() const {
+        return window;
+    }
+public:
+    std::map<int, bool> keyMap;
+
 private:
     void mainLoop();
-
     void handleEvents();
-    void logic(const float&);
+    void logic(float deltaTime);
     void draw();
-
     void handleResize();
+
 private:
     std::string titlePrefix;
     sf::RenderWindow window;
     sf::ContextSettings contextSettings;
-    std::map<int, bool> keyMap;
-    
-    GLuint vao;
-    std::vector<float> vertices;
-    std::vector<uint32_t> indices;
-    std::vector<float> normals;
-    GLuint vbo;
-    GLuint nbo;
-    GLuint ebo;
 
-    uint32_t triangleNum;
+    std::unique_ptr<Mesh> mesh;
 
-
-    GLuint shaderID;
-    sf::Shader shader;
     sf::Shader worldCoordShader;
 
-    
     // MVP matrix
     glm::mat4 projectionMatrix;
     glm::mat4 viewMatrix;
@@ -65,11 +63,6 @@ private:
     unsigned fpsCount = 0;
     unsigned actualTickCount = 0;
     const unsigned tickCount = 120;
-
-    template<typename T = float>
-    inline T getAspectRatio() {
-      return static_cast<T>(window.getSize().x) / window.getSize().y;
-    }
 
     void showDebugInfo();
 };

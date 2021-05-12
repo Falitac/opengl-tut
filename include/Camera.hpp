@@ -5,19 +5,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+class App;
+
 class Camera
 {
-    float fieldOfView;
-    float verticalAngle;
-    float horizontalAngle;
-    glm::vec3 direction;
-    glm::vec3 rightDirection;
-    glm::vec3 upDirection;
-
-    glm::vec3 position;
-    
 public:
-    Camera(const glm::vec3& initPosition = glm::vec3(0.f, 0.f, 0.f));
+    Camera(App& app, const glm::vec3& initPosition = glm::vec3(0.f, 0.f, 0.f));
 
 
     inline float& FOV() { return fieldOfView; };
@@ -44,5 +37,15 @@ public:
         return glm::lookAt(position, position + direction, upDirection);
     }
 
-    void update();
+    void update(float dt);
+private:
+    App &app;
+    float fieldOfView;
+    float verticalAngle;
+    float horizontalAngle;
+    glm::vec3 direction;
+    glm::vec3 rightDirection;
+    glm::vec3 upDirection;
+
+    glm::vec3 position;
 };

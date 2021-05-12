@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <cmath>
+#include <iostream>
 
 namespace generators {
 
@@ -16,29 +17,29 @@ void generateSphere(
 ) {
   auto calculateNormal = [&indices, &vertices] (uint32_t a, uint32_t b, uint32_t c) -> glm::vec3 {
     glm::vec3 vec_a {
-      vertices[indices[a] + 0],
-      vertices[indices[a] + 1],
-      vertices[indices[a] + 2]
+      vertices[a*3 + 0],
+      vertices[a*3 + 1],
+      vertices[a*3 + 2]
     };
     glm::vec3 vec_b {
-      vertices[indices[b] + 0],
-      vertices[indices[b] + 1],
-      vertices[indices[b] + 2]
+      vertices[b*3 + 0],
+      vertices[b*3 + 1],
+      vertices[b*3 + 2]
     };
     glm::vec3 vec_c {
-      vertices[indices[c] + 0],
-      vertices[indices[c] + 1],
-      vertices[indices[c] + 2]
+      vertices[c*3 + 0],
+      vertices[c*3 + 1],
+      vertices[c*3 + 2]
     };
     auto ba = vec_b - vec_a;
     auto cb = vec_c - vec_b;
-    return glm::normalize(glm::cross(cb, ba));
+    return glm::normalize(glm::cross(ba, cb));
   };
   auto addNormalForLast3 = [&normals, &indices, &calculateNormal] {
     glm::vec3 normal = calculateNormal(
-      indices.size() - 3,
-      indices.size() - 2,
-      indices.size() - 1
+      indices[indices.size() - 3],
+      indices[indices.size() - 2],
+      indices[indices.size() - 1]
     );
     normals.emplace_back(normal.x);
     normals.emplace_back(normal.y);

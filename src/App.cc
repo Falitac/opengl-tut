@@ -6,8 +6,7 @@
 App::App()
   : contextSettings(24, 8, 4, 4, 6)
   , titlePrefix("OpenGL ")
-  , camera(glm::vec3(0.f, 0.f, -8.f))
-  , triangleNum(1)
+  , camera(*this, glm::vec3(0.f, 0.f, -8.f))
 {
 }
 
@@ -23,45 +22,11 @@ void App::run() {
 
   glewExperimental = true;
   if(glewInit() != GLEW_OK) {
-    std::cout << "GLEW init failure" << std::endl;
+    std::cerr << "GLEW init failure" << std::endl;
+    throw std::runtime_error("glew not supported");
   }
 
-  generators::generateSphere(vertices, indices, normals, 4.0, 6);
-
-  for(int i=0;i<normals.size();i+=3) {
-    std::printf("%f %f %f\n",
-      normals[i+0],
-      normals[i+1],
-      normals[i+2]
-    );
-  }
-
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vbo);
-  glGenBuffers(1, &nbo);
-  glGenBuffers(1, &ebo);
-  glBindVertexArray(vao);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), &vertices[0], GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ARRAY_BUFFER, nbo);
-  glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), &normals[0], GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), &indices[0], GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-
-  glBindBuffer(GL_ARRAY_BUFFER, nbo);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+  mesh = std::make_unique<Mesh>("assets/objects/cylinder32.obj");
 
   glEnable(GL_DEPTH_BUFFER);
   glEnable(GL_DEPTH_TEST);
@@ -70,13 +35,8 @@ void App::run() {
 
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-  //shaderID = LoadShaders("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
   if(!sf::Shader::isAvailable()) {
-    std::printf("shit at this moment ");
-
-  }
-  if(!shader.loadFromFile("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl")) {
-    printf("no i chuj");
+    std::printf("Shaders are not supported on this device\n");
   }
   worldCoordShader.loadFromFile("assets/shaders/coordv.glsl", "assets/shaders/coordf.glsl");
 
@@ -94,24 +54,6 @@ void App::handleEvents() {
         if(event.key.control && keyMap[sf::Keyboard::W]) {
           window.close();
         }
-        int triangleChange = 0;
-        if(keyMap[sf::Keyboard::O]) {
-          triangleChange = 1;
-        }
-        if(keyMap[sf::Keyboard::P]) {
-          triangleChange = -1;
-        }
-        if(keyMap[sf::Keyboard::LShift]) {
-          triangleChange *= 200;
-        }
-        if(triangleChange < 0 && -triangleChange > triangleNum) {
-          triangleNum = 0;
-        } else {
-          triangleNum += triangleChange;
-        }
-        if(triangleChange != 0) {
-          std::printf("change: %d \n", triangleNum);
-        }
       }
       break;
       case sf::Event::KeyReleased:
@@ -126,80 +68,18 @@ void App::handleEvents() {
 
 }
 
-void App::logic(const float& deltaTime) {
-  auto camSpeed = 0.f;
-  auto strafeSpeed = 0.f;
-  auto rotateHor = 0.0f;
-  auto rotateVert = 0.0f;
-  
-  auto maxSpeed = 25.0f;
-  if(keyMap[sf::Keyboard::LShift]) {
-    maxSpeed /= 3.0f;
-  }
-  if(keyMap[sf::Keyboard::W]) {
-    camSpeed += maxSpeed;
-  }
-  if(keyMap[sf::Keyboard::S]) {
-    camSpeed -= maxSpeed;
-  }
-  if(keyMap[sf::Keyboard::A]) {
-    strafeSpeed -= maxSpeed;
-  }
-  if(keyMap[sf::Keyboard::D]) {
-    strafeSpeed += maxSpeed;
-  }
-  if(keyMap[sf::Keyboard::Q]) {
-    camera.pos().y -= maxSpeed * deltaTime;
-  }
-  if(keyMap[sf::Keyboard::E]) {
-    camera.pos().y += maxSpeed * deltaTime;
-  }
-
-
-  if(keyMap[sf::Keyboard::X]) {
-    //glDeleteProgram(shaderID);
-    //shaderID = LoadShaders("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-    std::printf("well something is happening\n");
-    shader.loadFromFile("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-  }
-
-  if(keyMap[sf::Keyboard::Space]) {
-    auto deltaMouse = sf::Vector2i(window.getSize()) / 2 - sf::Mouse::getPosition(window);
-    sf::Mouse::setPosition(sf::Vector2i(window.getSize()) / 2, window);
-    auto sensitivity = 2.2f;
-    rotateHor = deltaMouse.x * sensitivity * deltaTime;
-    rotateVert = deltaMouse.y * sensitivity * deltaTime;
-  }
-
-  camSpeed *= deltaTime;
-  strafeSpeed *= deltaTime;
-  camera.horAngle() += glm::radians(rotateHor);
-  camera.vertAngle() += glm::radians(rotateVert);
-  camera.move(camera.dir() * camSpeed + camera.right() * strafeSpeed);
+void App::logic(float deltaTime) {
+  camera.update(deltaTime);
 }
 
 void App::draw() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  camera.update();
   viewMatrix = glm::lookAt(
       camera.pos(),
       camera.pos() + camera.dir(),
       camera.up()
     );
   projectionView = projectionMatrix * viewMatrix;
-
-  auto modelMatrix = glm::mat4(1);
-  auto time = startClock.getElapsedTime().asSeconds();
-
-
-  glBindVertexArray(vao);
-  sf::Shader::bind(&shader);
-  shader.setUniform("cameraDirection", sf::Glsl::Vec3(camera.dir().x, camera.dir().y, camera.dir().z));
-  shader.setUniform("model", sf::Glsl::Mat4(&modelMatrix[0][0]));
-  shader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));
-  shader.setUniform("projection", sf::Glsl::Mat4(&projectionMatrix[0][0]));
-  
-  glDrawElements(GL_TRIANGLES, 3*indices.size(), GL_UNSIGNED_INT, 0);
 
   sf::Shader::bind(&worldCoordShader);
   worldCoordShader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));
@@ -224,8 +104,6 @@ void App::draw() {
 
 
   glBindVertexArray(0);
-  window.pushGLStates();
-  window.popGLStates();
   window.display();
 }
 
