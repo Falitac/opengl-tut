@@ -36,12 +36,6 @@ void Mesh::loadFromFile(const std::string& fileLocation) {
 
       glBindVertexArray(0);
       std::puts("done!");
-      // Printing
-      // for(auto& vertex : vertices) {
-      //   std::printf("pos : %f %f %f\n", vertex.position.x, vertex.position.y, vertex.position.z);
-      //   std::printf("uv  : %f %f\n", vertex.uv.x, vertex.uv.y);
-      //   std::printf("norm: %f %f %f\n", vertex.normal.x, vertex.normal.y, vertex.normal.z);
-      // }
     }
   }
 }

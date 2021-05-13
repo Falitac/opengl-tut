@@ -35,8 +35,11 @@ void App::run() {
 
 
 
+  std::string meshLocation = "assets/objects/cylinder32.obj";
+  std::cin >> meshLocation;
+  std::cout << meshLocation;
   std::cout << "Error: " << glGetError() << "\n";
-  mesh = std::make_unique<Mesh>("assets/objects/cylinder32.obj");
+  mesh = std::make_unique<Mesh>(meshLocation);
   std::cout << "Error: " << glGetError() << "\n";
 
   //glEnable(GL_CULL_FACE);
@@ -92,7 +95,9 @@ void App::draw() {
   projectionView = projectionMatrix * viewMatrix;
 
 
-  sf::Shader::bind(&shader);
+  //sf::Shader::bind(&shader);
+  shader.setUniform("cameraDirection", sf::Glsl::Vec3(camera.dir().x, camera.dir().y, camera.dir().z));
+  shader.setUniform("cameraPosition", sf::Glsl::Vec3(camera.pos().x, camera.pos().y, camera.pos().z));
   shader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));
   shader.setUniform("projection", sf::Glsl::Mat4(&projectionMatrix[0][0]));
   mesh->draw(shader);
