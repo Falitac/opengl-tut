@@ -88,7 +88,7 @@ void Mesh::loadOBJ(std::ifstream& file) {
     } else if (lineStart == "f") {
       uint32_t index;
       auto faces = collectFaces(lineStream);
-      if(faces.size() > 3) {
+      if(faces.size() >= 3) {
         auto first = *faces.begin();
         for(auto it = faces.begin() + 2; it != faces.end(); it++) {
           indices.push_back(first);
@@ -129,13 +129,12 @@ void Mesh::loadOBJ(std::ifstream& file) {
 }
 
 std::vector<std::array<uint32_t, 3>> Mesh::collectFaces(std::istringstream& lineStream) {
-  uint32_t index;
+  uint32_t index = 0;
   std::vector<std::array<uint32_t, 3>> result;
   std::array<uint32_t, 3> face {0};
   while(lineStream >> face[0]) {
     face[0]--;
     if(lineStream.peek() == '/') {
-      lineStream.get();
       lineStream >> face[1];
       face[1]--;
       if(lineStream.peek() == '/') {

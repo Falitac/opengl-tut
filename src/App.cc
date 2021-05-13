@@ -3,10 +3,13 @@
 #include "../include/Sphere.hpp"
 #include "../include/Icosphere.hpp"
 
+#include <filesystem>
+
 App::App()
   : contextSettings(24, 8, 4, 4, 6)
   , titlePrefix("OpenGL ")
   , camera(*this, glm::vec3(0.f, 0.f, -8.f))
+  , meshId(0)
 {
 }
 
@@ -31,18 +34,26 @@ void App::run() {
   }
   glEnable(GL_DEPTH_BUFFER);
   glEnable(GL_DEPTH_TEST);
+  //glEnable(GL_CULL_FACE);
   glFrontFace(GL_CCW);
 
+  namespace fs = std::filesystem;
+  const fs::path objectsPath{"assets/objects/"};
+  for(const auto& entry : fs::directory_iterator(objectsPath)) {
+    const auto filename = entry.path().string();
+    if(entry.is_regular_file() && entry.path().extension() == ".obj") {
+      std::cout << "Found: " << filename << "\n";
+      meshLocations.emplace_back(filename);
+    }
+  }
+  try {
+    mesh = std::make_unique<Mesh>(meshLocations[meshId]);
+  }
+  catch(const std::exception& e) {
+    std::cerr << e.what() << '\n';
+    std::exit(1.f);
+  }
 
-
-  std::string meshLocation = "assets/objects/cylinder32.obj";
-  std::cin >> meshLocation;
-  std::cout << meshLocation;
-  std::cout << "Error: " << glGetError() << "\n";
-  mesh = std::make_unique<Mesh>(meshLocation);
-  std::cout << "Error: " << glGetError() << "\n";
-
-  //glEnable(GL_CULL_FACE);
 
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
@@ -66,6 +77,27 @@ void App::handleEvents() {
         if(keyMap[sf::Keyboard::X]) {
           std::puts("reloading shader");
           shader.loadFromFile("assets/shaders/basic-v.glsl", "assets/shaders/basic-f.glsl");
+        }
+        bool reload = false;
+        if(keyMap[sf::Keyboard::N]) {
+          reload = true;
+          if(meshId == 0) {
+            meshId = meshLocations.size() - 1;
+          } else {
+            meshId--;
+          }
+        }
+        if(keyMap[sf::Keyboard::M]) {
+          reload = true;
+          if(meshId == meshLocations.size() - 1) {
+            meshId = 0;
+          } else {
+            meshId++;
+          }
+        }
+        if(reload) {
+          std::printf("Actual: %s\n", meshLocations[meshId].c_str());
+          mesh = std::make_unique<Mesh>(meshLocations[meshId]);
         }
       }
       break;
@@ -95,7 +127,6 @@ void App::draw() {
   projectionView = projectionMatrix * viewMatrix;
 
 
-  //sf::Shader::bind(&shader);
   shader.setUniform("cameraDirection", sf::Glsl::Vec3(camera.dir().x, camera.dir().y, camera.dir().z));
   shader.setUniform("cameraPosition", sf::Glsl::Vec3(camera.pos().x, camera.pos().y, camera.pos().z));
   shader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));

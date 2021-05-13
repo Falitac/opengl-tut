@@ -46,6 +46,8 @@ private:
     sf::ContextSettings contextSettings;
 
     std::unique_ptr<Mesh> mesh;
+    std::vector<std::string> meshLocations;
+    std::size_t meshId;
 
     sf::Shader worldCoordShader;
     sf::Shader shader;
