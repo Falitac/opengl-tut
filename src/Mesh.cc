@@ -88,7 +88,7 @@ void Mesh::loadOBJ(std::ifstream& file) {
     } else if (lineStart == "vt") {
       float x, y, z;
       lineStream >> x >> y;
-      uvs.emplace_back(x, y);
+      uvs.emplace_back(x, 1.0f - y);
     } else if (lineStart == "f") {
       uint32_t index;
       auto faces = collectFaces(lineStream);

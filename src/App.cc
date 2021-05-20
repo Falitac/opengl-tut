@@ -46,7 +46,6 @@ void App::run() {
       meshLocations.emplace_back(filename);
     }
   }
-  meshLocations = {"assets/objects/nami-head.obj"};
   try {
     mesh = std::make_unique<Mesh>(meshLocations[meshId]);
   }
@@ -132,6 +131,7 @@ void App::draw() {
   shader.setUniform("cameraPosition", sf::Glsl::Vec3(camera.pos().x, camera.pos().y, camera.pos().z));
   shader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));
   shader.setUniform("projection", sf::Glsl::Mat4(&projectionMatrix[0][0]));
+  shader.setUniform("time", startClock.getElapsedTime().asSeconds());
   mesh->draw(shader);
 
   sf::Shader::bind(&worldCoordShader);
