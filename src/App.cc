@@ -46,6 +46,7 @@ void App::run() {
       meshLocations.emplace_back(filename);
     }
   }
+  meshLocations = {"assets/objects/nami-head.obj"};
   try {
     mesh = std::make_unique<Mesh>(meshLocations[meshId]);
   }

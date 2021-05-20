@@ -5,6 +5,7 @@ layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 normal;
 
 out vec3 fragmentColor;
+out vec2 fragmentUV;
 
 uniform vec3 cameraDirection;
 uniform vec3 cameraPosition;
@@ -26,4 +27,5 @@ void main() {
     1 - uv.x
   );
   fragmentColor = fragmentColor * factor;
+  fragmentUV = uv;
 }

@@ -28,7 +28,8 @@ public:
 
 private:
   sf::Shader shader;
-  std::map<int, sf::Texture> textures;
+  std::map<std::string, sf::Texture> textures;
+  std::string usedTexture;
 
   uint32_t vao;
   uint32_t vbo;
@@ -39,6 +40,7 @@ private:
   void deleteBuffers();
 
   void loadOBJ(std::ifstream& file);
+  void loadMaterial(const std::string& path);
   std::vector<std::array<uint32_t, 3>> collectFaces(std::istringstream& lineStream);
 
   std::vector<Vertex> vertices;
