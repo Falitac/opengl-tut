@@ -67,5 +67,7 @@ private:
     unsigned actualTickCount = 0;
     const unsigned tickCount = 120;
 
+    int divisions = 4;
+
     void showDebugInfo();
 };

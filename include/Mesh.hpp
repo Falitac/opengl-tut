@@ -9,20 +9,24 @@
 #include <array>
 #include <SFML/Graphics.hpp>
 
-struct Vertex {
-  glm::vec3 position;
-  glm::vec2 uv;
-  glm::vec3 normal;
-};
 
 class Mesh {
 public:
-
-  Mesh() = default;
+  struct Vertex {
+    glm::vec3 position;
+    glm::vec2 uv;
+    glm::vec3 normal;
+  };
   Mesh(const std::string& fileLocation);
+  Mesh();
   ~Mesh();
 
   void loadFromFile(const std::string& fileLocation);
+  void loadSphere(
+    float radius,
+    int verticalSubdivision,
+    int horizontalSubdivisions
+  );
   void update();
   void draw(sf::Shader& shader);
 
@@ -37,6 +41,7 @@ private:
   uint32_t nvo;
 
   void genBuffers();
+  void passVerticesToBuffer();
   void deleteBuffers();
 
   void loadOBJ(std::ifstream& file);

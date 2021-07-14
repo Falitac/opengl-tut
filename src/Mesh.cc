@@ -1,13 +1,20 @@
 #include "../include/Mesh.hpp"
+#include "../include/Sphere.hpp"
+#include "../include/Random.hpp"
 
 #include <filesystem>
 #include <optional>
 #include <iostream>
+#include <glm/gtc/constants.hpp>
 
 
 Mesh::Mesh(const std::string& fileLocation) {
   genBuffers();
   loadFromFile(fileLocation);
+}
+
+Mesh::Mesh() {
+  genBuffers();
 }
 
 Mesh::~Mesh() {
@@ -21,24 +28,37 @@ void Mesh::loadFromFile(const std::string& fileLocation) {
     if(fileExtension == ".obj") {
       std::cout << "It's an obj!\n";
       loadOBJ(inputFile);
-      glBindVertexArray(vao);
-
-      glBindBuffer(GL_ARRAY_BUFFER, vbo);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), &vertices[0], GL_STATIC_DRAW);
-
-      glEnableVertexAttribArray(0);
-      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
-
-      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, uv)));
-      glEnableVertexAttribArray(1);
-
-      glEnableVertexAttribArray(2);
-      glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal)));
-
-      glBindVertexArray(0);
+      passVerticesToBuffer();
       std::puts("done!");
     }
   }
+}
+
+void Mesh::loadSphere(
+  float radius,
+  int verticalSubdivision,
+  int horizontalSubdivisions
+) {
+  usedTexture = "lava"; 
+  textures[usedTexture].loadFromFile("assets/textures/earth2048.bmp");
+  std::vector<glm::vec3> vertices;
+  std::vector<uint32_t> indices;
+  std::vector<glm::vec3> normals;
+  std::vector<glm::vec2> uvs;
+  generators::generateSphere(vertices, indices, normals, uvs, radius, verticalSubdivision, horizontalSubdivisions);
+  for(auto index : indices) {
+    Vertex v;
+    v.position = vertices[index];
+    v.normal = normals[index];
+    auto subHorizontalAngle = glm::atan(v.normal.x, v.normal.z);
+    auto u = v.normal.y == 1.0 or v.normal.y == -1.0
+      ? 0.5f + (1.5f*subHorizontalAngle) / glm::two_pi<float>()
+      : 0.5f + subHorizontalAngle / glm::two_pi<float>();
+    v.uv = uvs[index];
+
+    this->vertices.push_back(std::move(v));
+  }
+  passVerticesToBuffer();
 }
 
 void Mesh::update() {
@@ -63,6 +83,24 @@ void Mesh::genBuffers() {
 void Mesh::deleteBuffers() {
   glDeleteBuffers(1, &vbo);
   glDeleteVertexArrays(1, &vao);
+}
+
+void Mesh::passVerticesToBuffer() {
+  glBindVertexArray(vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*vertices.size(), &vertices[0], GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);
+
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, uv)));
+  glEnableVertexAttribArray(1);
+
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, normal)));
+
+  glBindVertexArray(0);
 }
 
 void Mesh::loadOBJ(std::ifstream& file) {

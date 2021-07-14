@@ -9,93 +9,64 @@ namespace generators {
 
 
 void generateSphere(
-  std::vector<float>& vertices,
+  std::vector<glm::vec3>& vertices,
   std::vector<uint32_t>& indices,
-  std::vector<float>& normals,
+  std::vector<glm::vec3>& normals,
+  std::vector<glm::vec2>& uvs,
   float radius,
-  int divisions
+  uint32_t verticalSubdivisions,
+  uint32_t horizontalSubdivisions
 ) {
-  auto calculateNormal = [&indices, &vertices] (uint32_t a, uint32_t b, uint32_t c) -> glm::vec3 {
-    glm::vec3 vec_a {
-      vertices[a*3 + 0],
-      vertices[a*3 + 1],
-      vertices[a*3 + 2]
-    };
-    glm::vec3 vec_b {
-      vertices[b*3 + 0],
-      vertices[b*3 + 1],
-      vertices[b*3 + 2]
-    };
-    glm::vec3 vec_c {
-      vertices[c*3 + 0],
-      vertices[c*3 + 1],
-      vertices[c*3 + 2]
-    };
-    auto ba = vec_b - vec_a;
-    auto cb = vec_c - vec_b;
-    return glm::normalize(glm::cross(ba, cb));
-  };
-  auto addNormalForLast3 = [&normals, &indices, &calculateNormal] {
-    glm::vec3 normal = calculateNormal(
-      indices[indices.size() - 3],
-      indices[indices.size() - 2],
-      indices[indices.size() - 1]
-    );
-    normals.emplace_back(normal.x);
-    normals.emplace_back(normal.y);
-    normals.emplace_back(normal.z);
-  };
+  vertices.emplace_back(0.0f, -radius, 0.0f);
+  normals.emplace_back(0.0f, -1.0f, 0.0f);
+  for(int i = 1; i < verticalSubdivisions; i++) {
+    auto theta = glm::pi<float>() * static_cast<float>(i) / static_cast<float>(verticalSubdivisions) - glm::half_pi<float>();
+    for(int j = 0; j < horizontalSubdivisions; j++) {
+      auto phi = glm::two_pi<float>() * static_cast<float>(j) / static_cast<float>(horizontalSubdivisions);
+      auto v = glm::vec3(
+        std::cos(phi) * std::cos(theta),
+        std::sin(theta),
+        std::sin(phi) * std::cos(theta)
+      );
+      normals.push_back(v);
+      v *= radius;
+      vertices.push_back(std::move(v));
 
-  vertices.emplace_back(0.0f);
-  vertices.emplace_back(-radius);
-  vertices.emplace_back(0.0f);
-
-  for(int i = 1; i < divisions; i++) {
-    auto theta = glm::pi<float>() * static_cast<float>(i) / static_cast<float>(divisions) - glm::half_pi<float>();
-    for(int j = 0; j < divisions; j++) {
-      auto phi = glm::two_pi<float>() * static_cast<float>(j) / static_cast<float>(divisions);
-      vertices.emplace_back(radius * std::cos(phi) * std::cos(theta));
-      vertices.emplace_back(radius * std::sin(theta));
-      vertices.emplace_back(radius * std::sin(phi) * std::cos(theta));
+      uvs.emplace_back(
+        1.0f - static_cast<float>(j)/horizontalSubdivisions,
+        1.0f - static_cast<float>(i)/verticalSubdivisions
+      );
     }
   }
-
-  vertices.emplace_back(0.0f);
-  vertices.emplace_back(radius);
-  vertices.emplace_back(0.0f);
-
-  // indices 
+  vertices.emplace_back(0.0f, radius, 0.0f);
+  normals.emplace_back(0.0f, 1.0f, 0.0f);
 
   // bottom vertex
-  for(int i = 0; i < divisions; i++) {
+  for(int i = 0; i < horizontalSubdivisions; i++) {
     indices.emplace_back(0);
-    indices.emplace_back((i + 1) % (divisions + 1));
-    indices.emplace_back((i + 1) % divisions + 1);
-    addNormalForLast3();
+    indices.emplace_back((i + 1) % (horizontalSubdivisions + 1));
+    indices.emplace_back((i + 1) % horizontalSubdivisions + 1);
   }
 
   // rest
-  for(int i = 0; i < divisions - 2; i++) {
-    for(int j = 0; j < divisions; j++) {
-      indices.emplace_back(j + 1 + i * divisions);
-      indices.emplace_back((j + 1) % divisions + 1 + (i + 1) * divisions);
-      indices.emplace_back((j + 1) % divisions + 1 + i * divisions);
-      addNormalForLast3();
+  for(int i = 0; i < verticalSubdivisions - 2; i++) {
+    for(int j = 0; j < horizontalSubdivisions; j++) {
+      indices.emplace_back(j + 1 + i * horizontalSubdivisions);
+      indices.emplace_back((j + 1) % horizontalSubdivisions + 1 + (i + 1) * horizontalSubdivisions);
+      indices.emplace_back((j + 1) % horizontalSubdivisions + 1 + i * horizontalSubdivisions);
 
-      indices.emplace_back(j + 1 + i * divisions);
-      indices.emplace_back(j + 1 + (i + 1) * divisions);
-      indices.emplace_back((j + 1) % divisions + 1 + (i + 1) * divisions);
-      addNormalForLast3();
+      indices.emplace_back(j + 1 + i * horizontalSubdivisions);
+      indices.emplace_back(j + 1 + (i + 1) * horizontalSubdivisions);
+      indices.emplace_back((j + 1) % horizontalSubdivisions + 1 + (i + 1) * horizontalSubdivisions);
     }
   }
 
   // upper vertex
-  auto N = vertices.size() / 3 - 1;
-  for(int i = 0; i < divisions; i++) {
+  auto N = vertices.size() - 1;
+  for(int i = 0; i < horizontalSubdivisions; i++) {
     indices.emplace_back(N);
     indices.emplace_back(N - 1 - i);
-    indices.emplace_back(N - 1 - (i + 1) % divisions);
-    addNormalForLast3();
+    indices.emplace_back(N - 1 - (i + 1) % horizontalSubdivisions);
   }
 }
 

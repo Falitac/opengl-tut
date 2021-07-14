@@ -2,15 +2,18 @@
 
 #include <vector>
 #include <cstdint>
+#include <glm/glm.hpp>
 
 namespace generators {
 
 void generateSphere(
-  std::vector<float>& vertices,
+  std::vector<glm::vec3>& vertices,
   std::vector<uint32_t>& indices,
-  std::vector<float>& normals,
-  float radius = 6.0f,
-  int divisions = 50
+  std::vector<glm::vec3>& normals,
+  std::vector<glm::vec2>& uvs,
+  float radius,
+  uint32_t verticalSubdivisions,
+  uint32_t horizontalSubdivisions
 );
 
 } // namespace project

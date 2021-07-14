@@ -51,11 +51,13 @@ void App::run() {
   }
   catch(const std::exception& e) {
     std::cerr << e.what() << '\n';
-    std::exit(1.f);
+    std::exit(1);
   }
+  mesh = std::make_unique<Mesh>();
+  mesh->loadSphere(6.0, divisions, divisions);
 
-
-  glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+  //glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
   shader.loadFromFile("assets/shaders/basic-v.glsl", "assets/shaders/basic-f.glsl");
   worldCoordShader.loadFromFile("assets/shaders/coordv.glsl", "assets/shaders/coordf.glsl");
@@ -99,6 +101,23 @@ void App::handleEvents() {
           std::printf("Actual: %s\n", meshLocations[meshId].c_str());
           mesh = std::make_unique<Mesh>(meshLocations[meshId]);
         }
+        bool reloadSphere = false;
+        if(keyMap[sf::Keyboard::O]) {
+          divisions--;
+          if(divisions < 3) {
+            divisions = 3;
+          } else {
+            reloadSphere = true;
+          }
+        }
+        if(keyMap[sf::Keyboard::P]) {
+          divisions++;
+          reloadSphere = true;
+        }
+        if(reloadSphere) {
+          mesh = std::make_unique<Mesh>();
+          mesh->loadSphere(6.0f, divisions, divisions);
+        }
       }
       break;
       case sf::Event::KeyReleased:
@@ -133,7 +152,8 @@ void App::draw() {
   shader.setUniform("projection", sf::Glsl::Mat4(&projectionMatrix[0][0]));
   shader.setUniform("time", startClock.getElapsedTime().asSeconds());
   mesh->draw(shader);
-
+  
+  
   sf::Shader::bind(&worldCoordShader);
   worldCoordShader.setUniform("view", sf::Glsl::Mat4(&viewMatrix[0][0]));
   worldCoordShader.setUniform("projection", sf::Glsl::Mat4(&projectionMatrix[0][0]));
